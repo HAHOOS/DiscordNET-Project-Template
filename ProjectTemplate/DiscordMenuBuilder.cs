@@ -165,7 +165,9 @@ namespace ProjectTemplate
                     StartMenu();
                     return;
                 }
+                bool answer = AnsiConsole.Confirm("Run bot in maintenance mode?", false);
                 Program.currentPreset = selected;
+                Program.maintenance = answer;
                 await Program.Run();
                 #endregion
             }

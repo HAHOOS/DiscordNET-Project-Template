@@ -18,6 +18,7 @@ namespace ProjectTemplate
     {
         public static Dictionary<string, Preset> presetsJSON;
         public static DiscordSocketClient? client;
+        public static ChatBuilder chatBuilder;
         public static DateTime runtime;
         public static Preset? currentPreset;
         public static bool maintenance = false;
@@ -37,7 +38,7 @@ namespace ProjectTemplate
         public static Game status = new Game("with the template", ActivityType.Playing); // Used to display the bot status
         public static bool enableStatus = true; // Displays the status for EVERY preset/bot, if u disable it u have to set the status with code yourself (for example use preset options)
 
-        public static GatewayIntents gatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMembers;
+        public static GatewayIntents gatewayIntents = GatewayIntents.All;
 
         static async Task Main(string[] args)
         {
@@ -62,13 +63,13 @@ namespace ProjectTemplate
             config.AlwaysDownloadUsers = true;
             config.MessageCacheSize = 100;
             config.GatewayIntents = gatewayIntents;
-            config.AlwaysDownloadUsers = true;
             cmds = new Commands();
             client = new DiscordSocketClient(config);
             client.Log += LogAsync;
             client.Connected += Connected;
             client.SlashCommandExecuted += cmds.Handle;
             events = new Events();
+            chatBuilder = new ChatBuilder();
             await client.LoginAsync(TokenType.Bot, currentPreset.token);
             await client.StartAsync();
             StartTerminal();
@@ -99,14 +100,6 @@ namespace ProjectTemplate
             {
                 TimeSpan time = DateTime.Now - runtime;
             }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-            /*
-            while (true)
-            {
-                TimeSpan time = DateTime.Now - runtime;
-                //Console.Title = $"Venar Bot Console | Version {version}  | {client.Latency} ms | {time.Days}d {time.Hours}h {time.Minutes}m {time.Seconds}s";
-                await Task.Delay(1000);
-            }
-            */
 
         }
 
@@ -151,7 +144,7 @@ namespace ProjectTemplate
                 StartTerminal();
                 return;
             }
-
+            if (chatBuilder._return) return;
             switch (args[0].ToLower())
             {
                 case "stop":
@@ -225,24 +218,42 @@ namespace ProjectTemplate
                     {
                         invite = $"https://discord.gg/{invite}";
                     }
+                    var users = gu.Users;
+                    int totalUsers = users.Where(user => user.IsBot == false).Count();
+                    int online = 0;
+                    int offline = 0;
+                    int bots = 0;
+                    foreach (IGuildUser user in users)
+                    {
+                        if (user.IsBot) bots++;
+                        else if (user.Status == UserStatus.Online) online++;
+                        else if (user.Status == UserStatus.Offline) offline++;
+                    }
                     AnsiConsole.Write(new Rule($"[{color}] Guild Info [/]"));
                     AnsiConsole.Write(new Markup($@"
 ID: {gu.Id}
 Name: {gu.Name}
 Description: {gu.Description}
-Members Count: {gu.MemberCount}
 Owner: {gu.Owner.Username} ({gu.Owner.Id})
+Created At: {gu.CreatedAt.ToString("g")}
+
+Total Members: {totalUsers}
+Online Members: {online}
+Offline Members: {offline}
+Bots: {bots}
+
 Invite Link: {invite}
 "));
                     if(invite == "Unable to retrieve invite")
                     {
                         AnsiConsole.Write(new Markup(
-                            @"[red]We were unable to retrieve the invite due to these reasons
-:
+                            @"[red]We were unable to retrieve the invite due to these reasons:
 
   The bot does not have [bold]Manage Guild/Server[/] or [bold]Create Invite[/]
 [/]"));
                     }
+                    AnsiConsole.Write(new Rule());
+                    StartTerminal();
                     break;
                 case "help":
                     AnsiConsole.Write(new Rule($"[{color}] Help [/]"));
@@ -256,7 +267,10 @@ stop - Stop the bot
 leaveserver (id) - Leave a server
 servers - List all servers the bot is in
 lookup (id) - Lookup informations about a server
+chat - Opens a menu where you can send messages in servers
+dm - Opens a menu where you can answer DMs
 "));
+                    AnsiConsole.Write(new Rule());
                     StartTerminal();
                     break;
                 case "maintenace":
@@ -333,6 +347,14 @@ lookup (id) - Lookup informations about a server
                     }
                     await client.SetStatusAsync(status);
                     Log.Information($"Successfully changed the activity to ${status.ToString()}");
+                    StartTerminal();
+                    break;
+                case "chat":
+                    await chatBuilder.Start(ChatBuilder.ChatType.Chat);
+                    StartTerminal();
+                    break;
+                case "dm":
+                    await chatBuilder.Start(ChatBuilder.ChatType.DMs);
                     StartTerminal();
                     break;
                 default:
