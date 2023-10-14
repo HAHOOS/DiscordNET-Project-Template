@@ -24,7 +24,7 @@ namespace CountingBot
                 Log.Information("JSON directory not found, creating...");
                 try
                 {
-                    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "JSON"));
+                    jsonDirectory = Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "JSON"));
                     Log.Information("JSON directory successfully created!");
                 }
                 catch(Exception ex)
