@@ -11,6 +11,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Discord.Rest;
 using System.Linq;
+using CountingBot;
 
 namespace ProjectTemplate
 {
@@ -25,6 +26,7 @@ namespace ProjectTemplate
         private static Timer? _timer = null;
         private static Commands cmds = null;
         private static Events events = null;
+        private static JSONPresetBuilder jsonPresetBuilder = null;
 
         // Settings
 
@@ -33,6 +35,10 @@ namespace ProjectTemplate
         public static List<string> options = new List<string>() // Options for bots/presets, to get do "PresetObject:GetValueOfOption("option name")", to see more check the wiki on github
         {
             "developer"
+        };
+        public static string[] jsonFiles = new string[] // JSON Files that will be created for every preset    DO NOT INCLUDE .JSON
+        {
+            "servers"
         };
 
         public static Game status = new Game("with the template", ActivityType.Playing); // Used to display the bot status
@@ -64,6 +70,7 @@ namespace ProjectTemplate
             config.MessageCacheSize = 100;
             config.GatewayIntents = gatewayIntents;
             cmds = new Commands();
+            jsonPresetBuilder = new JSONPresetBuilder(jsonFiles);
             client = new DiscordSocketClient(config);
             client.Log += LogAsync;
             client.Connected += Connected;
@@ -96,6 +103,7 @@ namespace ProjectTemplate
             }
             Log.Debug("Starting creation of slash commands...");
             await cmds.Create();
+            await jsonPresetBuilder.Create(currentPreset);
             _timer = new Timer(a =>
             {
                 TimeSpan time = DateTime.Now - runtime;
@@ -164,10 +172,12 @@ namespace ProjectTemplate
                     break;
                 case "servers":
                     Log.Information($"Found {client.CurrentUser.MutualGuilds.Count} servers:");
+                    AnsiConsole.Write(new Rule($"[{color}] Servers [/]"));
                     foreach (var g in client.CurrentUser.MutualGuilds)
                     {
-                        Log.Information($"{g.Name} (${g.MemberCount} members): {g.Id}");
+                        AnsiConsole.MarkupLine($"\n[{color}]{g.Name}[/] ({g.Id}): {g.MemberCount} members\n");
                     }
+                    AnsiConsole.Write(new Rule());
                     StartTerminal();
                     break;
                 case "lookup":
