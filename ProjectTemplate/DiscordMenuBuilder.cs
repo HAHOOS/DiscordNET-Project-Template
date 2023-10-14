@@ -33,7 +33,7 @@ namespace ProjectTemplate
             created = true;
         }
 
-        public async Task EditPreset(Preset preset, string option)
+        public void EditPreset(Preset preset, string option)
         {
             var newPreset = preset;
             Console.Write($"{Environment.NewLine}Type the new value: ");
@@ -69,7 +69,7 @@ namespace ProjectTemplate
                     Console.WriteLine(" "+item.name + ": " + item.value);
                 }
                 Console.ReadKey();
-                ShowPresetActions(preset);
+                await ShowPresetActions(preset);
                 return;
             }
             else if (paOpt == "Test Functionality")
@@ -86,7 +86,7 @@ namespace ProjectTemplate
                     AnsiConsole.Write(new Markup($"{Environment.NewLine}[lime]Token test success[/]"));
                 }
                 Console.ReadKey();
-                ShowPresetActions(preset);
+                await ShowPresetActions(preset);
                 return;
             }
             else if (paOpt == "Delete")
@@ -101,20 +101,20 @@ namespace ProjectTemplate
                     File.WriteAllText("presets.json", jsonS);
                     AnsiConsole.Write(new Markup($"{Environment.NewLine}[lime]Successfully removed the preset[/]"));
                     Console.ReadKey();
-                    ShowPresetActions(preset);
+                    await ShowPresetActions(preset);
                     return;
                 }
                 else
                 {
                     AnsiConsole.Write(new Markup($"{Environment.NewLine}[lime]Cancelled.[/]"));
                     Console.ReadKey();
-                    ShowPresetActions(preset);
+                    await ShowPresetActions(preset);
                     return;
                 }
             }
             else if (paOpt == "Back")
             {
-                OptionSelected("Presets");
+                await OptionSelected("Presets");
                 return;
             }
             else if (paOpt == "Edit")
@@ -125,9 +125,9 @@ namespace ProjectTemplate
  .Title($"[{textColor}] {name} | Select an option to edit[/]")
  .HighlightStyle(new Style().Foreground(Spectre.Console.Color.Black).Background(Spectre.Console.Color.White).Decoration(Decoration.Bold))
 .AddChoices(settings));
-                await EditPreset(preset, eOpt);
+                EditPreset(preset, eOpt);
                 Console.ReadKey();
-                ShowPresetActions(preset);
+                await ShowPresetActions(preset);
             }
         }
 
@@ -141,7 +141,7 @@ namespace ProjectTemplate
                 {
                     Log.Error("Presets are empty, please create a new one in the option 'Presets'");
                     Console.ReadKey();
-                    StartMenu();
+                    await StartMenu();
                     return;
                 }
                 var list = Program.presetsJSON.Keys.ToList();
@@ -155,14 +155,14 @@ namespace ProjectTemplate
         .AddChoices(list));
                 if (sOpt == "Cancel")
                 {
-                    StartMenu();
+                    await StartMenu();
                     return;
                 }
                 Preset selected = Program.presetsJSON.ToList().Find(x => x.Key == sOpt).Value;
                 if (selected == null)
                 {
                     Log.Error("Unable to retrieve the preset, please try again");
-                    StartMenu();
+                    await StartMenu();
                     return;
                 }
                 bool answer = AnsiConsole.Confirm("Run bot in maintenance mode?", false);
@@ -237,13 +237,13 @@ namespace ProjectTemplate
                     File.WriteAllText("presets.json", jsonS);
                     Console.WriteLine("Successfully created a new preset!");
                     Console.ReadKey();
-                    OptionSelected("Presets");
+                    await OptionSelected("Presets");
                     return;
 
                 }
                 else if (pOpt == "Cancel")
                 {
-                    StartMenu();
+                    await StartMenu();
                     return;
                 }
                 else
@@ -251,10 +251,10 @@ namespace ProjectTemplate
                     Preset selected = Program.presetsJSON.ToList().Find(x => x.Key == pOpt).Value;
                     if (selected == null) { Log.Error("Unable to retrieve the preset, please try again");
                         Console.ReadKey();
-                        StartMenu();
+                        await StartMenu();
                         return;
                     }
-                    ShowPresetActions(selected);
+                    await ShowPresetActions(selected);
                 }
                 #endregion
             }
@@ -288,7 +288,7 @@ namespace ProjectTemplate
         .AddChoices(new[] {
            "Start", "Presets", "Exit"
         }));
-            OptionSelected(opt);
+            await OptionSelected(opt);
             await Task.Delay(-1);
         }
     }

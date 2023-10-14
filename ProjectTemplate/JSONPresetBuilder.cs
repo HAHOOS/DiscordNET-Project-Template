@@ -27,7 +27,7 @@ namespace CountingBot
                     jsonDirectory = Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "JSON"));
                     Log.Information("JSON directory successfully created!");
                 }
-                catch(Exception ex)
+                catch(Exception)
                 {
                     Log.Information("JSON directory has failed to create");
                 }
@@ -38,7 +38,7 @@ namespace CountingBot
             this.jsonFiles = jsonFiles;
         }
 
-        public async Task Create(Preset preset)
+        public void Create(Preset preset)
         {
             Log.Information("Creating JSON files for the current preset...");
             DirectoryInfo directory = jsonDirectory.GetDirectories().ToList().Find(x => x.Name == preset.name);
@@ -53,7 +53,7 @@ namespace CountingBot
                         File.Create(Path.Combine(directory.FullName, $"{file}.json"));
                         Log.Information($"{file}.json successfully created!");
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         Log.Information($"{file}.json has failed to create");
                     }

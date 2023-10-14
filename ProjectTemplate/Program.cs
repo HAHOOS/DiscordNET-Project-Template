@@ -18,12 +18,12 @@ namespace ProjectTemplate
     public class Program
     {
         public static Dictionary<string, Preset> presetsJSON;
-        public static DiscordSocketClient? client;
+        public static DiscordSocketClient client;
         public static ChatBuilder chatBuilder;
         public static DateTime runtime;
-        public static Preset? currentPreset;
+        public static Preset currentPreset;
         public static bool maintenance = false;
-        private static Timer? _timer = null;
+        private static Timer _timer = null;
         private static Commands cmds = null;
         private static Events events = null;
         private static JSONPresetBuilder jsonPresetBuilder = null;
@@ -103,7 +103,7 @@ namespace ProjectTemplate
             }
             Log.Debug("Starting creation of slash commands...");
             await cmds.Create();
-            await jsonPresetBuilder.Create(currentPreset);
+            jsonPresetBuilder.Create(currentPreset);
             _timer = new Timer(a =>
             {
                 TimeSpan time = DateTime.Now - runtime;
@@ -184,15 +184,12 @@ namespace ProjectTemplate
                     Log.Information("Getting guild information...");
                     var gu = client.GetGuild(ulong.Parse(args[1]));
                     string invite = null;
-                    bool vanityInvite = false;
-                    bool firstInvite = false;
-                    bool createdInvite = false;
+
                     if (gu.CurrentUser.GuildPermissions.ManageGuild)
                     {
                         var invites = await gu.GetInvitesAsync();
                         if (invites != null && invites.Count > 0)
                         {
-                            firstInvite = true;
                             invite = invites.First().Code;
                         }
                     }
@@ -205,7 +202,6 @@ namespace ProjectTemplate
                             {
                                 Log.Information("Invite found");
                                 invite = v.Code;
-                                vanityInvite = true;
                             }
                         }
                         else {
@@ -215,7 +211,6 @@ namespace ProjectTemplate
                                 var i = await gu.DefaultChannel.CreateInviteAsync(maxAge: 86400);
                                 invite = i.Code;
                                 Log.Information("Invite created");
-                                createdInvite = true;
                             }
                         }
                     }
